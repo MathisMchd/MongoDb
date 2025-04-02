@@ -3,7 +3,36 @@ const router = express.Router();
 const Potion = require('../model/potion.model');
 
 
-// GET /analytics/distinct-categories aggregat du nombre total de catégories différentes
+/**
+ * @swagger
+ * /analytics/distinct-categories:
+ *   get:
+ *     summary: Récupère le nombre total de catégories distinctes
+ *     tags:
+ *       - Analytics
+ *     responses:
+ *       200:
+ *         description: Résultat du nombre total de catégories distinctes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 categoryCounter:
+ *                   type: integer
+ *                   description: Nombre total de catégories distinctes
+ *                   example: 5
+ *       400:
+ *         description: Erreur lors de la récupération des catégories
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Erreur lors de l'agrégation des catégories"
+ */
 router.get('/distinct-categories', async (req, res) => {
     try {
 
@@ -20,7 +49,52 @@ router.get('/distinct-categories', async (req, res) => {
 });
 
 
-// GET /analytics/average-score-by-vendor aggregat du score moyen des vendeurs
+/**
+ * @swagger
+ * /analytics/average-score-by-vendor:
+ *   get:
+ *     summary: Calcule la moyenne des scores des potions par vendeur
+ *     tags:
+ *       - Analytics
+ *     responses:
+ *       200:
+ *         description: Résultat de la moyenne des scores par vendeur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: L'ID du vendeur
+ *                     example: "vendor123"
+ *                   scoreMoyen:
+ *                     type: number
+ *                     description: Score moyen du vendeur
+ *                     example: 4.2
+ *       404:
+ *         description: Aucun vendeur trouvé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Aucun vendeur trouvé"
+ *       400:
+ *         description: Erreur dans la requête ou agrégation invalide
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Erreur de base de données"
+ */
 router.get('/average-score-by-vendor', async (req, res) => {
     try {
 
@@ -41,7 +115,52 @@ router.get('/average-score-by-vendor', async (req, res) => {
 });
 
 
-// GET /analytics/average-score-by-category aggregat du score moyen des categories
+/**
+ * @swagger
+ * /analytics/average-score-by-category:
+ *   get:
+ *     summary: Calcule la moyenne des scores des potions par catégorie
+ *     tags:
+ *       - Analytics
+ *     responses:
+ *       200:
+ *         description: Résultat de la moyenne des scores par catégorie
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: Nom de la catégorie
+ *                     example: "Potion de soin"
+ *                   scoreMoyen:
+ *                     type: number
+ *                     description: Score moyen de la catégorie
+ *                     example: 4.5
+ *       404:
+ *         description: Aucune catégorie trouvée
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Aucune catégorie trouvée"
+ *       400:
+ *         description: Erreur dans la requête ou agrégation invalide
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Erreur de base de données"
+ */
 router.get('/average-score-by-category', async (req, res) => {
     try {
 
@@ -65,7 +184,48 @@ router.get('/average-score-by-category', async (req, res) => {
 });
 
 
-// GET /analytics/strength-flavor-ratio ratio entre force et parfum des potions
+/**
+ * @swagger
+ * /analytics/strength-flavor-ratio:
+ *   get:
+ *     summary: Calcule le ratio de force sur saveur des potions
+ *     tags:
+ *       - Analytics
+ *     responses:
+ *       200:
+ *         description: Résultat du ratio force/saveur des potions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ratio:
+ *                   type: number
+ *                   description: Ratio total de la force sur la saveur
+ *                   example: 1.2
+ *                 totalStrength:
+ *                   type: number
+ *                   description: Somme totale des forces des potions
+ *                   example: 120
+ *                 totalFlavor:
+ *                   type: number
+ *                   description: Somme totale des saveurs des potions
+ *                   example: 100
+ *                 count:
+ *                   type: integer
+ *                   description: Nombre total de potions prises en compte
+ *                   example: 10
+ *       400:
+ *         description: Erreur dans la requête ou agrégation invalide
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Erreur lors du calcul du ratio"
+ */
 router.get('/strength-flavor-ratio', async (req, res) => {
     try {
         const strengthFlavorRatio = await Potion.aggregate([
@@ -105,9 +265,74 @@ router.get('/strength-flavor-ratio', async (req, res) => {
 });
 
 
-// GET /analytics/search fonction de recherche avec 3 paramètres :
-// grouper par vendeur ou catégorie, metrique au choix (avg, sum, count), champ au choix (score, price, ratings).
-
+/**
+ * @swagger
+ * /analytics/search:
+ *   get:
+ *     summary: Recherche et agrégation des potions en fonction de critères spécifiques
+ *     tags:
+ *       - Analytics
+ *     parameters:
+ *       - in: query
+ *         name: groupBy
+ *         required: true
+ *         description: "Champ utilisé pour regrouper les données (ex: vendor_id, categories)"
+ *         schema:
+ *           type: string
+ *           enum: [vendor_id, categories]
+ *       - in: query
+ *         name: metric
+ *         required: true
+ *         description: "Métrique d'agrégation à appliquer (ex: avg, sum, count)"
+ *         schema:
+ *           type: string
+ *           enum: [avg, sum, count]
+ *       - in: query
+ *         name: field
+ *         required: true
+ *         description: "Champ sur lequel appliquer la métrique (ex: score, price, ratings)"
+ *         schema:
+ *           type: string
+ *           enum: [score, price, ratings]
+ *     responses:
+ *       200:
+ *         description: Résultat de l'agrégation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                     description: Valeur du champ groupé
+ *                     example: "vendor123"
+ *                   metric:
+ *                     type: number
+ *                     description: Résultat de l'agrégation
+ *                     example: 4.5
+ *       400:
+ *         description: Paramètre invalide dans la requête
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Paramètre 'groupBy' invalide"
+ *       500:
+ *         description: Erreur interne du serveur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Erreur de base de données"
+ */
 router.get('/search', async (req, res) => {
     try {
         // Récupérer les paramètres de la requête
