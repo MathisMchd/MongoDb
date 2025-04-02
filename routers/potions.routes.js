@@ -10,6 +10,8 @@ const authMiddleware = require('../middlewares/auth.middleware');
  * /names:
  *   get:
  *     summary: Permet de récupérer la liste des noms des potions
+ *     tags:
+ *       - Potions
  *     description: Renvoie un tableau contenant les noms des potions.
  *     responses:
  *       200:
@@ -62,9 +64,13 @@ router.post('/', authMiddleware, async (req, res) => {
     try {
         const newPotion = new Potion(req.body);
         const savedPotion = await newPotion.save();
+
+        if (!savedPotion) {
+            return res.status(400).json({ error: "Erreur lors de la création de la potion." });
+        }
         res.status(201).json(savedPotion);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -82,13 +88,13 @@ router.post('/', authMiddleware, async (req, res) => {
  *         name: min
  *         schema:
  *           type: number
- *         required: false
+ *         required: true
  *         description: Prix minimum des potions (par défaut 0)
  *       - in: query
  *         name: max
  *         schema:
  *           type: number
- *         required: false
+ *         required: true
  *         description: Prix maximum des potions (par défaut 999999999)
  *     responses:
  *       200:
@@ -100,7 +106,7 @@ router.post('/', authMiddleware, async (req, res) => {
  *               items:
  *                 $ref: '#/components/schemas/Potion'
  *       400:
- *         description: Erreur de validation des paramètres
+ *         description: Les valeurs min et max doivent être des nombres valides
  *       500:
  *         description: Erreur du serveur
  */
@@ -156,7 +162,7 @@ router.get('/:id', async (req, res) => {
     try {
         const potion = await Potion.findById(req.params.id);
         if (!potion) {
-            return res.status(404).json({ error: 'Potion not found' });
+            return res.status(404).json({ error: 'Potion non trouvée' });
         }
         res.json(potion.name);
     } catch (err) {
@@ -207,14 +213,13 @@ router.get('/:id', async (req, res) => {
  *                   type: string
  *                   example: "Erreur de base de données"
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
     try {
 
         const updatedPotion = await Potion.findByIdAndUpdate(
             req.params.id,
-            req.body,          // Nouvelles données 
-            { new: true, runValidators: true } // Retourne la potion mise à jour et applique les validations, 
-            // sinon cela retourne par défaut l'objet d'avant
+            req.body,
+            { new: true, runValidators: true } // Autorise la mise à jour de l'objet si elle n'existe pas 
         );
 
         if (!updatedPotion) {
@@ -223,7 +228,7 @@ router.put('/:id', async (req, res) => {
 
         res.json(updatedPotion);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -280,7 +285,7 @@ router.put('/:id', async (req, res) => {
  *                   type: string
  *                   example: "Erreur dans la suppression de la potion"
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         const deletedPotion = await Potion.findByIdAndDelete(req.params.id);
 
@@ -297,7 +302,50 @@ router.delete('/:id', async (req, res) => {
 
 
 
-
+/**
+ * @swagger
+ * /potions/vendor/{vendor_id}:
+ *   get:
+ *     summary: Récupère toutes les potions d'un vendeur par son ID
+ *     tags:
+ *       - Potions
+ *     parameters:
+ *       - in: path
+ *         name: vendor_id
+ *         required: true
+ *         description: Le nom du vendeur
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des potions du vendeur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Potion'
+ *       404:
+ *         description: Aucune potion trouvée pour ce vendeur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Potions non trouvées pour le vendeur"
+ *       400:
+ *         description: Erreur de requête
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Erreur dans la récupération des potions"
+ */
 router.get('/vendor/:vendor_id', async (req, res) => {
     try {
 
