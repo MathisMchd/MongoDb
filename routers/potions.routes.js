@@ -173,25 +173,30 @@ router.get('/:id', async (req, res) => {
 /**
  * @swagger
  * /potions/{id}:
- *   get:
- *     summary: Récupère une potion par son ID
+ *   put:
+ *     summary: Met à jour une potion par son ID
  *     tags:
  *       - Potions
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: L'ID de la potion à récupérer
+ *         description: L'ID de la potion à mettre à jour
  *         schema:
  *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Potion'
  *     responses:
  *       200:
- *         description: Potion trouvée avec succès
+ *         description: Potion mise à jour avec succès
  *         content:
  *           application/json:
  *             schema:
- *               type: string
- *               example: "Potion de soin"
+ *               $ref: '#/components/schemas/Potion'
  *       404:
  *         description: Potion non trouvée
  *         content:
@@ -201,7 +206,7 @@ router.get('/:id', async (req, res) => {
  *               properties:
  *                 error:
  *                   type: string
- *                   example: "Potion not found"
+ *                   example: "Potion non trouvée"
  *       500:
  *         description: Erreur interne du serveur
  *         content:

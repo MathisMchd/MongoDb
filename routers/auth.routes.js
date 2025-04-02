@@ -184,21 +184,25 @@ router.post('/login', [
     const username = req.body.username;
     const password = req.body.password;
 
-    const user = await User.findOne({ username });
-    if (!user || !(await user.comparePassword(password))) {
-        return res.status(401).json({ error: 'Identifiants invalides' });
+    try {
+        const user = await User.findOne({ username });
+        if (!user || !(await user.comparePassword(password))) {
+            return res.status(401).json({ error: 'Identifiants invalides' });
+        }
+
+        const token = jwt.sign({ id: user._id, username: username }, JWT_SECRET, { expiresIn: '1d' });
+
+        res.cookie(COOKIE_NAME, token, {
+            httpOnly: true,
+            sameSite: 'strict',
+            secure: false, // à mettre sur true en prod (https)
+            maxAge: 24 * 60 * 60 * 1000 // durée de vie 24h
+        });
+
+        res.json({ message: 'Connecté avec succès' });
+    } catch (err) {
+        return res.status(500).json({ error: 'Erreur système' });
     }
-
-    const token = jwt.sign({ id: user._id, username: username }, JWT_SECRET, { expiresIn: '1d' });
-
-    res.cookie(COOKIE_NAME, token, {
-        httpOnly: true,
-        sameSite: 'strict',
-        secure: false, // à mettre sur true en prod (https)
-        maxAge: 24 * 60 * 60 * 1000 // durée de vie 24h
-    });
-
-    res.json({ message: 'Connecté avec succès' });
 });
 
 
