@@ -7,7 +7,7 @@ const authMiddleware = require('../middlewares/auth.middleware');
 // GET /names : récupérer uniquement les noms de toutes les potions
 /**
  * @swagger
- * /names:
+ * /potions/names:
  *   get:
  *     summary: Permet de récupérer la liste des noms des potions
  *     tags:

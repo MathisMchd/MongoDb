@@ -1,10 +1,9 @@
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_change_me';
-const COOKIE_NAME = 'demo_node+mongo_token';
+const COOKIE_NAME = process.env.COOKIE_NAME || 'demo_node+mongo_token';
 
 function authMiddleware(req, res, next) {
     const token = req.cookies?.[COOKIE_NAME];
-
     // Vérification de présence et format du token
     if (!token || typeof token !== 'string' || token.trim() === '') {
         return res.status(401).json({ error: 'Token d’authentification manquant ou invalide' });

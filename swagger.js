@@ -60,7 +60,7 @@ const options = {
                         },
                         vendor_id: {
                             type: 'string',
-                            example: '660dg5298894dvb561dh6d1',
+                            example: 'Brewers',
                         },
                     },
                 },
